@@ -26,7 +26,7 @@ const char *colors[] = {
 };
 
 // Define each letter's pattern using full block characters
-char *letters[26][MAX_HEIGHT] = {
+char *letters[27][MAX_HEIGHT] = {
      {"▄▀▀▀▀▄",
       "█    █",
       "█▀▀▀▀█",
@@ -182,7 +182,13 @@ char *letters[26][MAX_HEIGHT] = {
       "  ▄▀  ",
       " ▄▀   ",
       "▄█▄▄▄▄",
-      "      "}  // Z
+      "      "}, // Z
+     {"      ",
+      "      ",
+      "      ",
+      "      ",
+      "      ",
+      "      "}  // Space
 };
 
 void print_large_text(const char *text, int color_code) {
@@ -197,8 +203,10 @@ void print_large_text(const char *text, int color_code) {
             if (ch >= 'A' && ch <= 'Z') {
                 int index = ch - 'A';
                 printf("%s ", letters[index][row]);
+            } else if (ch == ' ') {
+                printf("%s ", letters[26][row]); // Print space pattern for space character
             } else {
-                printf("       "); // Space for unsupported characters
+                printf("       "); // Fallback space for unsupported characters
             }
         }
         printf("\n");
@@ -210,8 +218,9 @@ int main() {
     char input[100];
     int color;
 
-    printf("Enter a string (A-Z only): ");
-    scanf("%99s", input);
+    printf("Enter a string (A-Z and spaces only): ");
+    fgets(input, sizeof(input), stdin);
+    input[strcspn(input, "\n")] = '\0'; // Remove trailing newline
 
     printf("Enter a color (1-15): ");
     scanf("%d", &color);

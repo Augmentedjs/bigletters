@@ -24,37 +24,50 @@ const char *colors[] = {
     "\x1b[97m"  // 15: Bright White
 };
 
-void print_large_text(const char *text, int color_code, int bold, int rainbow) {
+void print_large_text(const char *text, int color_code, int bold, int rainbow, int underline) {
     const char *(*letters)[MAX_HEIGHT] = bold ? letters_bold : letters_normal;
     const char *(*numbers)[MAX_HEIGHT] = bold ? numbers_bold : numbers_normal;
 
+    if (color_code < 1 || color_code > 15) {
+        color_code = 7; // Default to white if the color is out of range
+    }
+
     for (int row = 0; row < MAX_HEIGHT; row++) {
-        // Set color for each line (rainbow effect)
-        if (rainbow) {
-            printf("%s", colors[(row % 6) + 1]); // Cycle through colors 1-6
+        // Apply rainbow colors if enabled
+        if (rainbow && row < 6) {
+            printf("%s", colors[(row % 6) + 1]); // Cycle colors 1 to 6
         } else {
-            printf("%s", colors[color_code]); // Regular color
+            printf("%s", colors[color_code]);
         }
 
-        for (size_t i = 0; i < strlen(text); i++) {
-            char ch = toupper(text[i]);
-            if (ch >= 'A' && ch <= 'Z') {
-                printf("%s ", letters[ch - 'A'][row]);
-            } else if (ch >= '0' && ch <= '9') {
-                printf("%s ", numbers[ch - '0'][row]);
-            } else {
-                printf("       "); // Space for blank character
+        // Replace last row with underline if underline is enabled
+        if (underline && row == MAX_HEIGHT - 1) {
+            for (size_t i = 0; i < strlen(text); i++) {
+                printf("▄▄▄▄▄▄▄");
+            }
+        } else {
+            // Print each character in text for the current row
+            for (size_t i = 0; i < strlen(text); i++) {
+                char ch = toupper(text[i]);
+                if (ch >= 'A' && ch <= 'Z') {
+                    printf("%s ", letters[ch - 'A'][row]);
+                } else if (ch >= '0' && ch <= '9') {
+                    printf("%s ", numbers[ch - '0'][row]);
+                } else {
+                    printf("       "); // Space for unsupported characters
+                }
             }
         }
+
         printf("\n");
     }
+
     printf("\x1b[0m"); // Reset color to default
 }
 
-int parse_arguments(int argc, char *argv[], char *text, int *color, int *bold, int *rainbow) {
+int parse_arguments(int argc, char *argv[], char *text, int *color, int *bold, int *rainbow, int *underline) {
     *color = 7; // Default to white
-    *bold = 0;  // Default to non-bold
-    *rainbow = 0;
+    *bold = 0; *rainbow = 0; *underline = 0; // Default flags
     text[0] = '\0';
 
     for (int i = 1; i < argc; i++) {
@@ -62,19 +75,21 @@ int parse_arguments(int argc, char *argv[], char *text, int *color, int *bold, i
             strncpy(text, argv[++i], MAX_CHARS);
             text[MAX_CHARS] = '\0';
         } else if (strcmp(argv[i], "-c") == 0 && i + 1 < argc) {
-            if (argv[i + 1][0] == 'r') {
+            if (strcmp(argv[i + 1], "r") == 0) {
                 *rainbow = 1;
-                *color = 0; // No specific color
                 i++;
             } else {
                 *color = atoi(argv[++i]);
             }
         } else if (strcmp(argv[i], "-b") == 0) {
             *bold = 1;
+        } else if (strcmp(argv[i], "-u") == 0) {
+            *underline = 1;
         } else {
             return 0; // Invalid argument
         }
     }
+
     return 1;
 }
 
@@ -86,22 +101,23 @@ int validate_input(const char *text, int color_code, int rainbow) {
 }
 
 void display_usage() {
-    printf("Usage: bigletters [-t text] [-c color | -c r] [-b]\n");
+    printf("Usage: bigletters [-t text] [-c color] [-b] [-u]\n");
     printf("Options:\n");
     printf("  -t text    Specify the text to display (max %d characters)\n", MAX_CHARS);
     printf("  -c color   Specify the color code (1-15) or 'r' for rainbow\n");
     printf("  -b         Use bold font\n");
+    printf("  -u         Underline the text\n");
 }
 
 int main(int argc, char *argv[]) {
     char text[MAX_CHARS + 1];
-    int color, bold, rainbow;
+    int color, bold, rainbow, underline;
 
-    if (!parse_arguments(argc, argv, text, &color, &bold, &rainbow) || !validate_input(text, color, rainbow)) {
+    if (!parse_arguments(argc, argv, text, &color, &bold, &rainbow, &underline) || !validate_input(text, color, rainbow)) {
         display_usage();
         return 1;
     }
 
-    print_large_text(text, color, bold, rainbow);
+    print_large_text(text, color, bold, rainbow, underline);
     return 0;
 }

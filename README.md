@@ -1,25 +1,27 @@
 # BigLetters CLI Program
 
-**BigLetters** is a C-based CLI program that prints large letters and numbers made from Unicode block characters. It includes options for colorizing the output using the standard 16 terminal colors and supports both normal and bold font styles.
+**BigLetters** is a versatile C-based CLI program that prints large letters and numbers made from Unicode block characters. It offers various styling options, such as color customization, bold fonts, underline effects, and inverse colors. Additionally, the program supports a rainbow mode to create a colorful gradient across each line of text.
 
 ## Features
 
-- Generates large letters and numbers using Unicode block characters.
-- Supports letters (A-Z) and numbers (0-9) in uppercase.
-- Options for normal and bold font styles.
-- Allows color selection from a range of 1 to 15.
-- Portable design with a Makefile for easy compilation.
-- Includes command-line arguments for automation or scripting use.
+- Generates large letters and numbers using full block Unicode characters.
+- Supports uppercase letters (A-Z), numbers (0-9), and spaces.
+- Provides CLI options for:
+  - Choosing text color (1-15) or a rainbow gradient.
+  - Bold font option.
+  - Underline option to underline text using block characters.
+  - Inverse colors, setting background colors instead of the foreground.
+- Clean, portable design with Makefile for easy compilation.
+- Includes comprehensive error handling and parameter parsing.
 
 ## Requirements
 
 - GCC compiler
-- `make` utility
 
 ## Installation
 
-1. Clone the repository or copy the `bigletters.c`, `Makefile`, and font files into a directory.
-2. Compile the program using `make`:
+1. Clone the repository or copy the `bigletters.c`, `font_normal.c`, `font_bold.c`, and `Makefile` files into a directory.
+2. Compile the program using the following command:
 
    ```bash
    make
@@ -29,75 +31,90 @@ This will produce an executable named `bigletters` in the directory.
 
 ## Usage
 
-Run the program by specifying the text, color code, and an optional bold flag. You can use command-line arguments or interactively enter the text and color.
-
-### Command-Line Arguments
-
-You can pass arguments directly to the program, allowing easy scripting and automation:
+You can run the program with various command-line arguments for customization:
 
 ```bash
-./bigletters -t "HELLO WORLD" -c 4 -b
+./bigletters [-t text] [-c color] [-b] [-u] [-i]
 ```
 
-- `-t`: Specifies the text (up to 20 characters, uppercase letters and numbers only).
-- `-c`: Sets the color code (1-15).
-- `-b`: Optional flag to print in bold style.
+### Options
 
-### Interactive Mode
+- **`-t text`**: Specify the text to display (max 20 characters).
+- **`-c color`**: Specify the color code (1-15) or 'r' for rainbow gradient.
+- **`-b`**: Enable bold font.
+- **`-u`**: Underline the text.
+- **`-i`**: Inverse colors, setting the background instead of the foreground color.
 
-If no arguments are provided, you’ll be prompted for input:
+### Example Commands
+
+#### Basic Usage
 
 ```bash
-$ ./bigletters
-Enter a string (A-Z, 0-9 only, max 20 characters): HELLO
-Enter a color (1-15): 3
+$ ./bigletters -t "HELLO" -c 4
 ```
 
-This will print "HELLO" in large, yellow letters.
+This will print "HELLO" in large blue letters.
+
+#### With Bold and Underline
+
+```bash
+$ ./bigletters -t "WORLD" -c 2 -b -u
+```
+
+This prints "WORLD" in a bold, green font with an underline.
+
+#### Using Rainbow Colors
+
+```bash
+$ ./bigletters -t "RAINBOW" -c r
+```
+
+This command prints "RAINBOW" with a rainbow gradient applied to each line.
+
+#### Inverse Colors with Underline
+
+```bash
+$ ./bigletters -t "INVERSE" -c 5 -i -u
+```
+
+This command prints "INVERSE" with an inverted magenta background and an underline.
 
 ### Color Codes
 
-| Color Code | Color               |
-|------------|----------------------|
-| 1          | Red                 |
-| 2          | Green               |
-| 3          | Yellow              |
-| 4          | Blue                |
-| 5          | Magenta             |
-| 6          | Cyan                |
-| 7          | White               |
+| Color Code | Color          |
+|------------|----------------|
+| 1          | Red            |
+| 2          | Green          |
+| 3          | Yellow         |
+| 4          | Blue           |
+| 5          | Magenta        |
+| 6          | Cyan           |
+| 7          | White          |
 | 8          | Gray (Bright Black) |
-| 9          | Bright Red          |
-| 10         | Bright Green        |
-| 11         | Bright Yellow       |
-| 12         | Bright Blue         |
-| 13         | Bright Magenta      |
-| 14         | Bright Cyan         |
-| 15         | Bright White        |
+| 9          | Bright Red     |
+| 10         | Bright Green   |
+| 11         | Bright Yellow  |
+| 12         | Bright Blue    |
+| 13         | Bright Magenta |
+| 14         | Bright Cyan    |
+| 15         | Bright White   |
 
-> **Note:** If an invalid color is specified, the program defaults to white.
+> **Note:** If the color code is invalid, the program defaults to white.
 
 ## Cleanup
 
-To remove compiled files and generated artifacts:
+To remove the compiled files, use:
 
 ```bash
 make clean
 ```
 
-For a full reset, including configuration files generated by `autoconf`:
-
-```bash
-make distclean
-```
-
 ## Code Structure
 
-- **`bigletters.c`**: Main program file containing logic for processing text and color inputs, along with handling CLI arguments.
-- **`bigletters.h`**: Header file with constants, color codes, and function declarations.
-- **`font_normal.c`**: Defines standard font patterns for letters and numbers.
-- **`font_bold.c`**: Defines bold font patterns for letters and numbers.
-- **`Makefile.am`**: Automake configuration for building the project.
+- **`bigletters.c`**: Contains the main program logic, including the printing functions and argument parsing.
+- **`bigletters.h`**: Header file with external declarations and function prototypes.
+- **`font_normal.c` and `font_bold.c`**: Source files defining the normal and bold fonts as Unicode block characters.
+- **`Makefile`**: Defines targets for building, running, and cleaning up the program.
 
 ## License
 

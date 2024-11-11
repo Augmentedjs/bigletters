@@ -198,8 +198,10 @@ void print_large_text(const char *text, int color_code) {
             if (ch >= 'A' && ch <= 'Z') {
                 int index = ch - 'A';
                 printf("%s ", letters[index][row]);
+            } else if (ch == ' ') {
+                printf("       "); // Space for blank character
             } else {
-                printf("       "); // Space for unsupported characters
+                printf("       "); // Unsupported characters also print as spaces
             }
         }
         printf("\n");
@@ -208,29 +210,23 @@ void print_large_text(const char *text, int color_code) {
 }
 
 int main() {
-    char input[MAX_CHARS + 1]; // Allow space for null terminator
+    char input[100];
     int color;
 
-    do {
-        printf("Enter a string (A-Z only, max %d characters): ", MAX_CHARS);
-        fgets(input, sizeof(input), stdin);
-        input[strcspn(input, "\n")] = 0; // Remove newline
+    printf("Enter a string (A-Z and spaces only, max 20 characters): ");
+    fgets(input, 100, stdin);
+    input[strcspn(input, "\n")] = 0; // Remove newline character from input
 
-        if (strlen(input) == 0) {
-            printf("Error: Input cannot be empty. Please try again.\n");
-        } else if (strlen(input) > MAX_CHARS) {
-            printf("Error: Input exceeds maximum allowed characters. Please try again.\n");
-        }
-    } while (strlen(input) == 0 || strlen(input) > MAX_CHARS);
+    if (strlen(input) == 0 || strlen(input) > 20) {
+        fprintf(stderr, "Error: Please enter between 1 and 20 characters.\n");
+        return 1;
+    }
 
-    do {
-        printf("Enter a color (1-15): ");
-        scanf("%d", &color);
-
-        if (color < 1 || color > 15) {
-            printf("Error: Invalid color code. Please enter a number between 1 and 15.\n");
-        }
-    } while (color < 1 || color > 15);
+    printf("Enter a color (1-15): ");
+    if (scanf("%d", &color) != 1 || color < 1 || color > 15) {
+        fprintf(stderr, "Error: Invalid color. Please enter a number between 1 and 15.\n");
+        return 1;
+    }
 
     print_large_text(input, color);
 

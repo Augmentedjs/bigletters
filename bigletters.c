@@ -4,6 +4,7 @@
 
 #define MAX_WIDTH 6
 #define MAX_HEIGHT 6
+#define MAX_CHARS 20
 
 // Define ANSI color codes for colors 1-15 (standard CLI colors)
 const char *colors[] = {
@@ -26,7 +27,7 @@ const char *colors[] = {
 };
 
 // Define each letter's pattern using full block characters
-char *letters[27][MAX_HEIGHT] = {
+char *letters[26][MAX_HEIGHT] = {
      {"▄▀▀▀▀▄",
       "█    █",
       "█▀▀▀▀█",
@@ -182,13 +183,7 @@ char *letters[27][MAX_HEIGHT] = {
       "  ▄▀  ",
       " ▄▀   ",
       "▄█▄▄▄▄",
-      "      "}, // Z
-     {"      ",
-      "      ",
-      "      ",
-      "      ",
-      "      ",
-      "      "}  // Space
+      "      "}  // Z
 };
 
 void print_large_text(const char *text, int color_code) {
@@ -203,10 +198,8 @@ void print_large_text(const char *text, int color_code) {
             if (ch >= 'A' && ch <= 'Z') {
                 int index = ch - 'A';
                 printf("%s ", letters[index][row]);
-            } else if (ch == ' ') {
-                printf("%s ", letters[26][row]); // Print space pattern for space character
             } else {
-                printf("       "); // Fallback space for unsupported characters
+                printf("       "); // Space for unsupported characters
             }
         }
         printf("\n");
@@ -215,15 +208,29 @@ void print_large_text(const char *text, int color_code) {
 }
 
 int main() {
-    char input[100];
+    char input[MAX_CHARS + 1]; // Allow space for null terminator
     int color;
 
-    printf("Enter a string (A-Z and spaces only): ");
-    fgets(input, sizeof(input), stdin);
-    input[strcspn(input, "\n")] = '\0'; // Remove trailing newline
+    do {
+        printf("Enter a string (A-Z only, max %d characters): ", MAX_CHARS);
+        fgets(input, sizeof(input), stdin);
+        input[strcspn(input, "\n")] = 0; // Remove newline
 
-    printf("Enter a color (1-15): ");
-    scanf("%d", &color);
+        if (strlen(input) == 0) {
+            printf("Error: Input cannot be empty. Please try again.\n");
+        } else if (strlen(input) > MAX_CHARS) {
+            printf("Error: Input exceeds maximum allowed characters. Please try again.\n");
+        }
+    } while (strlen(input) == 0 || strlen(input) > MAX_CHARS);
+
+    do {
+        printf("Enter a color (1-15): ");
+        scanf("%d", &color);
+
+        if (color < 1 || color > 15) {
+            printf("Error: Invalid color code. Please enter a number between 1 and 15.\n");
+        }
+    } while (color < 1 || color > 15);
 
     print_large_text(input, color);
 

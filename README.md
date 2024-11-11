@@ -77,14 +77,6 @@ make clean
 - **`bigletters.c`**: Contains the main program logic, including the letter patterns and functions to print colored, large-text letters.
 - **`Makefile`**: Provides targets to compile (`make`), run (`make run`), and clean (`make clean`) the program.
 
-## Customization
-
-To customize the letter patterns or add support for additional characters, modify the `letters` array in `bigletters.c`. Each letter pattern is represented as a 2D character array.
-
 ## License
 
 This project is open source and available under the MIT License.
-
-## Contributing
-
-Feel free to fork this project, make changes, and submit a pull request!

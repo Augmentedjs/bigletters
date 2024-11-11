@@ -96,3 +96,4 @@ bigletters
 /autom4te.cache/
 
 compile
+Makefile

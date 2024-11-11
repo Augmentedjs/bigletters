@@ -52,3 +52,47 @@ Mkfile.old
 dkms.conf
 
 bigletters
+
+# Ignore generated files by autoconf/automake
+/aclocal.m4
+/autom4te.cache
+/autoscan.log
+/config.h
+/config.h.in
+/config.log
+/config.status
+/configure
+/depcomp
+/install-sh
+/Makefile.in
+/missing
+/stamp-h1
+
+# Ignore generated Makefile
+/Makefile
+
+# Ignore build artifacts
+*.o
+*.obj
+*.lo
+*.la
+
+# Ignore compiled binaries
+/bigletters
+/a.out
+
+# Ignore temporary files
+*~
+*.swp
+
+# Ignore any libtool artifacts
+/.libs
+/.deps
+
+# Ignore distribution tarballs
+*.tar.gz
+
+# Ignore directory used by `autoreconf -i`
+/autom4te.cache/
+
+compile

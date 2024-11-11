@@ -186,6 +186,69 @@ char *letters[26][MAX_HEIGHT] = {
       "      "}  // Z
 };
 
+char *numbers[10][MAX_HEIGHT] = {
+    {"▄▀▀▀▀▄",
+     "█  ▄▀█",
+     "█▄▀  █",
+     "█    █",
+     "▀▄▄▄▄▀",
+     "      "}, // 0
+    {"  ▄█  ",
+     " ▀ █  ",
+     "   █  ",
+     "   █  ",
+     " ▄▄█▄▄",
+     "      "}, // 1
+    {"▄▀▀▀▀▄",
+     "    ▄▀",
+     "  ▄▀  ",
+     "▄▀    ",
+     "█▄▄▄▄▄",
+     "      "}, // 2
+    {"▄▀▀▀▀▄",
+     "     █",
+     " ▀▀▀▀▄",
+     "     █",
+     "▀▄▄▄▄▀",
+     "      "}, // 3
+    {"█    █",
+     "█    █",
+     "▀▀▀▀▀█",
+     "     █",
+     "     █",
+     "      "}, // 4
+    {"█▀▀▀▀▀",
+     "█     ",
+     "▀▀▀▀▀▄ ",
+     "     █",
+     "▀▄▄▄▄▀",
+     "      "}, // 5
+    {"▄▀▀▀▀ ",
+     "█     ",
+     "█▀▀▀▀▄",
+     "█    █",
+     "▀▄▄▄▄▀",
+     "      "}, // 6
+    {"▀▀▀▀▀█",
+     "     █",
+     "    █ ",
+     "   █  ",
+     "  █   ",
+     "      "}, // 7
+    {"▄▀▀▀▀▄",
+     "█    █",
+     "▄▀▀▀▀▄",
+     "█    █",
+     "▀▄▄▄▄▀",
+     "      "}, // 8
+    {"▄▀▀▀▀▄",
+     "█    █",
+     "▀▄▄▄▄█",
+     "     █",
+     "▀▄▄▄▄▀",
+     "      "}  // 9
+};
+
 void print_large_text(const char *text, int color_code) {
     if (color_code < 1 || color_code > 15) {
         color_code = 7; // Default to white if the color is out of range
@@ -198,6 +261,9 @@ void print_large_text(const char *text, int color_code) {
             if (ch >= 'A' && ch <= 'Z') {
                 int index = ch - 'A';
                 printf("%s ", letters[index][row]);
+            } else if (ch >= '0' && ch <= '9') {
+                int index = ch - '0';
+                printf("%s ", numbers[index][row]);
             } else if (ch == ' ') {
                 printf("       "); // Space for blank character
             } else {
@@ -213,7 +279,7 @@ int main() {
     char input[100];
     int color;
 
-    printf("Enter a string (A-Z and spaces only, max 20 characters): ");
+    printf("Enter a string (A-Z, 0-9, and spaces only, max 20 characters): ");
     fgets(input, 100, stdin);
     input[strcspn(input, "\n")] = 0; // Remove newline character from input
 

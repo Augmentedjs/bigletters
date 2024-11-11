@@ -1,10 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-#define MAX_WIDTH 6
-#define MAX_HEIGHT 6
-#define MAX_CHARS 20
+#include "bigletters.h"
 
 // Define ANSI color codes for colors 1-15 (standard CLI colors)
 const char *colors[] = {
@@ -26,8 +25,7 @@ const char *colors[] = {
     "\x1b[97m"  // 15: Bright White
 };
 
-// Define each letter's pattern using full block characters
-char *letters[26][MAX_HEIGHT] = {
+const char *letters[26][MAX_HEIGHT] = {
      {"▄▀▀▀▀▄",
       "█    █",
       "█▀▀▀▀█",
@@ -186,7 +184,7 @@ char *letters[26][MAX_HEIGHT] = {
       "      "}  // Z
 };
 
-char *numbers[10][MAX_HEIGHT] = {
+const char *numbers[10][MAX_HEIGHT] = {
     {"▄▀▀▀▀▄",
      "█  ▄▀█",
      "█▄▀  █",
@@ -255,8 +253,8 @@ void print_large_text(const char *text, int color_code) {
     }
 
     printf("%s", colors[color_code]); // Set the color
-    for (int row = 0; row < MAX_HEIGHT; row++) { // Each row of the pattern
-        for (size_t i = 0; i < strlen(text); i++) { // Use size_t for i to match strlen's return type
+    for (int row = 0; row < MAX_HEIGHT; row++) {
+        for (size_t i = 0; i < strlen(text); i++) {
             char ch = toupper(text[i]);
             if (ch >= 'A' && ch <= 'Z') {
                 int index = ch - 'A';
@@ -275,26 +273,53 @@ void print_large_text(const char *text, int color_code) {
     printf("\x1b[0m"); // Reset color to default
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     char input[100];
-    int color;
+    int color = 7; // Default color
 
-    printf("Enter a string (A-Z, 0-9, and spaces only, max 20 characters): ");
-    fgets(input, 100, stdin);
-    input[strcspn(input, "\n")] = 0; // Remove newline character from input
-
-    if (strlen(input) == 0 || strlen(input) > 20) {
-        fprintf(stderr, "Error: Please enter between 1 and 20 characters.\n");
-        return 1;
+    // Handle command-line arguments
+    if (argc > 1) {
+        for (int i = 1; i < argc; i++) {
+            if (strcmp(argv[i], "-c") == 0 && i + 1 < argc) {
+                color = atoi(argv[++i]);
+            } else if (strcmp(argv[i], "-t") == 0 && i + 1 < argc) {
+                strncpy(input, argv[++i], MAX_CHARS);
+                input[MAX_CHARS] = '\0'; // Ensure null-termination
+            } else if (i == 1 && argv[i][0] != '-') {
+                // First positional argument for text
+                strncpy(input, argv[i], MAX_CHARS);
+                input[MAX_CHARS] = '\0'; // Ensure null-termination
+            } else if (i == 2 && argv[i][0] != '-') {
+                // Second positional argument for color
+                color = atoi(argv[i]);
+            }
+        }
     }
 
-    printf("Enter a color (1-15): ");
-    if (scanf("%d", &color) != 1 || color < 1 || color > 15) {
+    // Validate color range
+    if (color < 1 || color > 15) {
         fprintf(stderr, "Error: Invalid color. Please enter a number between 1 and 15.\n");
         return 1;
     }
 
-    print_large_text(input, color);
+    // Check if input text was provided
+    if (strlen(input) == 0) {
+        printf("Enter a string (A-Z, 0-9, and spaces only, max 20 characters): ");
+        fgets(input, 100, stdin);
+        input[strcspn(input, "\n")] = 0; // Remove newline character from input
 
+        if (strlen(input) == 0 || strlen(input) > 20) {
+            fprintf(stderr, "Error: Please enter between 1 and 20 characters.\n");
+            return 1;
+        }
+
+        printf("Enter a color (1-15): ");
+        if (scanf("%d", &color) != 1 || color < 1 || color > 15) {
+            fprintf(stderr, "Error: Invalid color. Please enter a number between 1 and 15.\n");
+            return 1;
+        }
+    }
+
+    print_large_text(input, color);
     return 0;
 }

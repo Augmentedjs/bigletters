@@ -5,7 +5,7 @@ TARGET = bigletters
 CC = gcc
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -O2
 
 # Source files
 SRCS = bigletters.c
@@ -34,4 +34,3 @@ run: $(TARGET)
 
 # Phony targets (not actual files)
 .PHONY: all clean run
-

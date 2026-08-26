@@ -76,9 +76,16 @@ bigletters
 *.obj
 *.lo
 *.la
+*.log
+*.trs
 
 # Ignore compiled binaries
 /bigletters
+/font-pack-test
+/font-pack-test.log
+/font-pack-test.trs
+/test-driver
+/test-suite.log
 /a.out
 
 # Ignore temporary files
@@ -87,7 +94,8 @@ bigletters
 
 # Ignore any libtool artifacts
 /.libs
-/.deps
+.deps/
+*.dirstamp
 
 # Ignore distribution tarballs
 *.tar.gz

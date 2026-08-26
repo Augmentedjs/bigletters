@@ -1,121 +1,92 @@
-# BigLetters CLI Program
+# BigLetters
 
-**BigLetters** is a versatile C-based CLI program that prints large letters and numbers made from Unicode block characters. It offers various styling options, such as color customization, bold fonts, underline effects, and inverse colors. Additionally, the program supports a rainbow mode to create a colorful gradient across each line of text.
+BigLetters is a C command-line program for chunky terminal titles. It renders
+real 8×8 legacy bitmap fonts with Unicode half-block characters, preserving all
+eight source columns while packing two source rows into each terminal row. Each
+glyph supplies its own spacing inside its 8×8 cell, so adjacent glyphs are
+rendered without an extra separator column.
 
-## Features
+## Built-in font packs
 
-- Generates large letters and numbers using full block Unicode characters.
-- Supports uppercase letters (A-Z), numbers (0-9), and spaces.
-- Provides CLI options for:
-  - Choosing text color (1-15) or a rainbow gradient.
-  - Bold font option.
-  - Underline option to underline text using block characters.
-  - Inverse colors, setting background colors instead of the foreground.
-- Clean, portable design with Makefile for easy compilation.
-- Includes comprehensive error handling and parameter parsing.
+- `cga-thin` — IBM CGA Thin 8×8, the default non-bold face
+- `ega` — IBM EGA 8×8, the bold chunky title face
+- `phoenix` — Phoenix EGA 8×8, a heavier alternate face
 
-## Requirements
+The packs cover every printable ASCII character from `0x20` through `0x7e`.
+Invocations without a font option use `cga-thin`. `normal` remains an alias for
+`cga-thin`, while `bold` and `-b` select `ega` for compatibility with earlier
+releases.
 
-- GCC compiler
+The bitmap data is derived from fonts by VileR and is separately licensed under
+CC BY-SA 4.0. See [FONT-LICENSE.md](FONT-LICENSE.md) for attribution, source
+hashes, and licensing details.
 
-## Installation
+## Build
 
-1. Clone the repository or copy the `bigletters.c`, `font_normal.c`, `font_bold.c`, and `Makefile` files into a directory.
-2. Compile the program using the following command:
+Requirements are a C compiler, Autoconf, and Automake.
 
-   ```bash
-   make
-   ```
-
-This will produce an executable named `bigletters` in the directory.
+```bash
+./build.sh
+make check
+```
 
 ## Usage
 
-You can run the program with various command-line arguments for customization:
-
-```bash
-./bigletters [-t text] [-c color] [-b] [-u] [-i]
+```text
+bigletters -t text [-c color | -r R,G,B] [-f font] [-b] [-s] [-x] [-u] [-i] [-v]
 ```
 
-### Options
+Options:
 
-- **`-t text`**: Specify the text to display (max 20 characters).
-- **`-c color`**: Specify the color code (1-15) or 'r' for rainbow gradient.
-- **`-b`**: Enable bold font.
-- **`-u`**: Underline the text.
-- **`-i`**: Inverse colors, setting the background instead of the foreground color.
+- `-t text` or `--text text` renders up to 20 ASCII characters.
+- `-c 1` through `-c 15`, or `--color`, selects an ANSI color.
+- `-c r` or `--color r` selects the rainbow effect.
+- `-r R,G,B` or `--rgb R,G,B` selects a 24-bit terminal color with components
+  from `0` through `255`. RGB takes precedence over color, regardless of
+  argument order.
+- `-f name` or `--font name` selects a font pack.
+- `--list-fonts` prints the installed font packs.
+- `-b` or `--bold` switches from the default CGA Thin face to bold EGA.
+- `-s` or `--slant` uses row offsets of `3`, `2`, `1`, and `0` columns from top
+  to bottom. Glyph bitmap data is unchanged.
+- `-x` or `--extra-large` renders every source pixel as two adjacent full
+  blocks, producing a 16×8 terminal glyph. With slant, its row offsets are `7`
+  through `0`.
+- `-u` or `--underline` adds an underline below the glyphs.
+- `-i` or `--inverse` renders with ANSI background colors.
+- `-v` or `--version` prints the BigLetters version and exits.
 
-### Example Commands
-
-#### Basic Usage
-
-```bash
-$ ./bigletters -t "HELLO" -c 4
-```
-
-This will print "HELLO" in large blue letters.
-
-#### With Bold and Underline
-
-```bash
-$ ./bigletters -t "WORLD" -c 2 -b -u
-```
-
-This prints "WORLD" in a bold, green font with an underline.
-
-#### Using Rainbow Colors
+Terminal-title examples:
 
 ```bash
-$ ./bigletters -t "RAINBOW" -c r
+./bigletters -t "HOST: ATLAS-01" -c 6
+./bigletters -t "HOST: ATLAS-01" -r 64,200,255
+./bigletters -t "HOST: ATLAS-01" -r 64,200,255 -s
+./bigletters -t "HOST: ATLAS-01" -b -x -s -r 64,200,255
+./bigletters --text "HOST: ATLAS-01" --bold --extra-large --slant \
+  --rgb 64,200,255
+./bigletters -t "HOST: ATLAS-01" -b -c 6
+./bigletters -t "BUILD SERVER" -f phoenix -c r
+./bigletters -t "devbox.local" -f cga-thin -c 2
+./bigletters -v
 ```
 
-This command prints "RAINBOW" with a rainbow gradient applied to each line.
-
-#### Inverse Colors with Underline
+For a login-shell title, build BigLetters and add something like this to
+`~/.bash_profile`:
 
 ```bash
-$ ./bigletters -t "INVERSE" -c 5 -i -u
+/path/to/bigletters -t "HOST: $(hostname -s)" -c 6
 ```
 
-This command prints "INVERSE" with an inverted magenta background and an underline.
+## Font packs
 
-### Color Codes
-
-| Color Code | Color          |
-|------------|----------------|
-| 1          | Red            |
-| 2          | Green          |
-| 3          | Yellow         |
-| 4          | Blue           |
-| 5          | Magenta        |
-| 6          | Cyan           |
-| 7          | White          |
-| 8          | Gray (Bright Black) |
-| 9          | Bright Red     |
-| 10         | Bright Green   |
-| 11         | Bright Yellow  |
-| 12         | Bright Blue    |
-| 13         | Bright Magenta |
-| 14         | Bright Cyan    |
-| 15         | Bright White   |
-
-> **Note:** If the color code is invalid, the program defaults to white.
-
-## Cleanup
-
-To remove the compiled files, use:
-
-```bash
-make clean
-```
-
-## Code Structure
-
-- **`bigletters.c`**: Contains the main program logic, including the printing functions and argument parsing.
-- **`bigletters.h`**: Header file with external declarations and function prototypes.
-- **`font_normal.c` and `font_bold.c`**: Source files defining the normal and bold fonts as Unicode block characters.
-- **`Makefile`**: Defines targets for building, running, and cleaning up the program.
+Each printable character is stored as eight bytes: one byte per 8-pixel row.
+The normal renderer combines each pair of rows into `▀`, `▄`, `█`, or a space.
+Extra-large mode interprets the same bits as doubled full blocks; it does not
+carry a second copy of the font. See [FONTS.md](FONTS.md) for the C contract and
+regeneration workflow.
 
 ## License
 
-This project is open source and available under the Apache 2.0 License.
+BigLetters program code is available under the Apache License 2.0. Derived font
+data has the separate license described in [FONT-LICENSE.md](FONT-LICENSE.md).

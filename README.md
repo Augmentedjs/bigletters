@@ -33,23 +33,28 @@ make check
 ## Usage
 
 ```text
-bigletters -t text [-c color | -r R,G,B] [-f font] [-b] [-s] [-u] [-i]
+bigletters -t text [-c color | -r R,G,B] [-f font] [-b] [-s] [-x] [-u] [-i] [-v]
 ```
 
 Options:
 
-- `-t text` renders up to 20 ASCII characters.
-- `-c 1` through `-c 15` selects an ANSI color.
-- `-c r` selects the rainbow effect.
-- `-r R,G,B` selects a 24-bit terminal color with components from `0` through
-  `255`. RGB takes precedence over `-c`, regardless of argument order.
+- `-t text` or `--text text` renders up to 20 ASCII characters.
+- `-c 1` through `-c 15`, or `--color`, selects an ANSI color.
+- `-c r` or `--color r` selects the rainbow effect.
+- `-r R,G,B` or `--rgb R,G,B` selects a 24-bit terminal color with components
+  from `0` through `255`. RGB takes precedence over color, regardless of
+  argument order.
 - `-f name` or `--font name` selects a font pack.
 - `--list-fonts` prints the installed font packs.
-- `-b` switches from the default CGA Thin face to the bold EGA face.
-- `-s` slants the rendered title using row offsets of `3`, `2`, `1`, and `0`
-  columns from top to bottom. Glyph bitmap data is unchanged.
-- `-u` adds an underline below the glyphs.
-- `-i` renders with ANSI background colors.
+- `-b` or `--bold` switches from the default CGA Thin face to bold EGA.
+- `-s` or `--slant` uses row offsets of `3`, `2`, `1`, and `0` columns from top
+  to bottom. Glyph bitmap data is unchanged.
+- `-x` or `--extra-large` renders every source pixel as two adjacent full
+  blocks, producing a 16×8 terminal glyph. With slant, its row offsets are `7`
+  through `0`.
+- `-u` or `--underline` adds an underline below the glyphs.
+- `-i` or `--inverse` renders with ANSI background colors.
+- `-v` or `--version` prints the BigLetters version and exits.
 
 Terminal-title examples:
 
@@ -57,9 +62,13 @@ Terminal-title examples:
 ./bigletters -t "HOST: ATLAS-01" -c 6
 ./bigletters -t "HOST: ATLAS-01" -r 64,200,255
 ./bigletters -t "HOST: ATLAS-01" -r 64,200,255 -s
+./bigletters -t "HOST: ATLAS-01" -b -x -s -r 64,200,255
+./bigletters --text "HOST: ATLAS-01" --bold --extra-large --slant \
+  --rgb 64,200,255
 ./bigletters -t "HOST: ATLAS-01" -b -c 6
 ./bigletters -t "BUILD SERVER" -f phoenix -c r
 ./bigletters -t "devbox.local" -f cga-thin -c 2
+./bigletters -v
 ```
 
 For a login-shell title, build BigLetters and add something like this to
@@ -72,8 +81,10 @@ For a login-shell title, build BigLetters and add something like this to
 ## Font packs
 
 Each printable character is stored as eight bytes: one byte per 8-pixel row.
-The renderer combines each pair of rows into `▀`, `▄`, `█`, or a space. See
-[FONTS.md](FONTS.md) for the C contract and regeneration workflow.
+The normal renderer combines each pair of rows into `▀`, `▄`, `█`, or a space.
+Extra-large mode interprets the same bits as doubled full blocks; it does not
+carry a second copy of the font. See [FONTS.md](FONTS.md) for the C contract and
+regeneration workflow.
 
 ## License
 

@@ -1,5 +1,5 @@
 # configure.ac
-AC_INIT([bigletters], [2.0.0], [jedi.master@augmentedjs.com])
+AC_INIT([bigletters], [1.1.0], [jedi.master@augmentedjs.com])
 AC_PREREQ([2.69])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_SRCDIR([bigletters.c])

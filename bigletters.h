@@ -29,6 +29,11 @@ typedef struct BiglettersRgbColor {
     uint8_t blue;
 } BiglettersRgbColor;
 
+typedef enum BiglettersRenderMode {
+    BIGLETTERS_RENDER_HALF_BLOCKS = 0,
+    BIGLETTERS_RENDER_FULL_BLOCKS = 1
+} BiglettersRenderMode;
+
 extern const char *colors_fg[];
 extern const char *colors_bg[];
 
@@ -62,7 +67,8 @@ void print_large_text_with_font(
     int rainbow,
     int underline,
     int inverse,
-    int slant
+    int slant,
+    BiglettersRenderMode render_mode
 );
 void print_large_text_with_rgb(
     const char *text,
@@ -70,7 +76,8 @@ void print_large_text_with_rgb(
     const BiglettersFontPack *font,
     int underline,
     int inverse,
-    int slant
+    int slant,
+    BiglettersRenderMode render_mode
 );
 void print_large_text(
     const char *text,
@@ -92,6 +99,8 @@ int parse_arguments(
     int *underline,
     int *inverse,
     int *slant,
+    BiglettersRenderMode *render_mode,
+    int *show_version,
     int *list_fonts
 );
 int validate_input(
@@ -102,6 +111,7 @@ int validate_input(
     const BiglettersFontPack *font
 );
 void display_usage(void);
+void display_version(void);
 void display_font_packs(void);
 
 #endif

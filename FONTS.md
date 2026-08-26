@@ -28,6 +28,18 @@ An 8×8 source glyph therefore prints as eight columns by four terminal rows.
 Consecutive glyph cells are placed directly beside one another because their
 spacing is already part of each 8×8 bitmap.
 
+## Rendering modes
+
+Font packs are independent of terminal rendering size. The default half-block
+mode combines two bitmap rows into one terminal row, producing an 8×4 cell.
+Extra-large mode (`-x`) reads one bitmap row at a time and renders each source
+pixel as two adjacent full-block cells, producing a 16×8 cell from the same
+glyph data.
+
+Slant is also a rendering operation. Normal output uses row offsets `3` through
+`0`; extra-large output uses offsets `7` through `0`. This keeps the tilt at one
+terminal column per rendered row without modifying or duplicating glyph bits.
+
 ## Regenerating the legacy packs
 
 The checked-in arrays were generated from the three TTF source artifacts listed

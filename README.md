@@ -1,121 +1,73 @@
-# BigLetters CLI Program
+# BigLetters
 
-**BigLetters** is a versatile C-based CLI program that prints large letters and numbers made from Unicode block characters. It offers various styling options, such as color customization, bold fonts, underline effects, and inverse colors. Additionally, the program supports a rainbow mode to create a colorful gradient across each line of text.
+BigLetters is a C command-line program that renders text with pre-baked Unicode
+block and half-block glyphs. It supports every printable base-ASCII character
+(`0x20` through `0x7e`), including distinct uppercase and lowercase letters,
+numbers, punctuation, and symbols.
 
 ## Features
 
-- Generates large letters and numbers using full block Unicode characters.
-- Supports uppercase letters (A-Z), numbers (0-9), and spaces.
-- Provides CLI options for:
-  - Choosing text color (1-15) or a rainbow gradient.
-  - Bold font option.
-  - Underline option to underline text using block characters.
-  - Inverse colors, setting background colors instead of the foreground.
-- Clean, portable design with Makefile for easy compilation.
-- Includes comprehensive error handling and parameter parsing.
+- Printable ASCII: `A-Z`, `a-z`, `0-9`, spaces, punctuation, and symbols
+- Named, compile-time font packs
+- Built-in `normal` and `bold` packs
+- ANSI colors 1-15 and row-based rainbow color
+- Underline and inverse-color effects
+- A visible replacement glyph for bytes outside the supported ASCII range
 
-## Requirements
+## Build
 
-- GCC compiler
+Requirements are a C compiler, Autoconf, and Automake.
 
-## Installation
+```bash
+./build.sh
+make check
+```
 
-1. Clone the repository or copy the `bigletters.c`, `font_normal.c`, `font_bold.c`, and `Makefile` files into a directory.
-2. Compile the program using the following command:
-
-   ```bash
-   make
-   ```
-
-This will produce an executable named `bigletters` in the directory.
+The resulting executable is `./bigletters`.
 
 ## Usage
 
-You can run the program with various command-line arguments for customization:
-
-```bash
-./bigletters [-t text] [-c color] [-b] [-u] [-i]
+```text
+bigletters -t text [-c color] [-f font] [-b] [-u] [-i]
 ```
 
-### Options
+Options:
 
-- **`-t text`**: Specify the text to display (max 20 characters).
-- **`-c color`**: Specify the color code (1-15) or 'r' for rainbow gradient.
-- **`-b`**: Enable bold font.
-- **`-u`**: Underline the text.
-- **`-i`**: Inverse colors, setting the background instead of the foreground color.
+- `-t text` renders up to 20 ASCII characters.
+- `-c 1` through `-c 15` selects an ANSI color.
+- `-c r` selects the rainbow effect.
+- `-f name` or `--font name` selects a font pack.
+- `--list-fonts` prints the installed font packs.
+- `-b` remains as an alias for `--font bold`.
+- `-u` adds an underline below the glyphs.
+- `-i` renders with ANSI background colors.
 
-### Example Commands
-
-#### Basic Usage
-
-```bash
-$ ./bigletters -t "HELLO" -c 4
-```
-
-This will print "HELLO" in large blue letters.
-
-#### With Bold and Underline
+Examples:
 
 ```bash
-$ ./bigletters -t "WORLD" -c 2 -b -u
+./bigletters -t "Hello, world!" -c 4
+./bigletters -t "Score: 12,500" --font bold -c r
+./bigletters -t "[ready] 100%" -u -i -c 2
+./bigletters --list-fonts
 ```
 
-This prints "WORLD" in a bold, green font with an underline.
+## Font packs
 
-#### Using Rainbow Colors
+A font pack is a `BiglettersFontPack` containing six-row, six-column pre-baked
+glyph tables. Each pack owns uppercase, lowercase, and number glyphs and may
+provide its own printable-ASCII symbols. The built-in packs share the standard
+symbol table.
 
-```bash
-$ ./bigletters -t "RAINBOW" -c r
-```
+See [FONTS.md](FONTS.md) for the pack contract and an example of adding a pack.
 
-This command prints "RAINBOW" with a rainbow gradient applied to each line.
+## Source layout
 
-#### Inverse Colors with Underline
-
-```bash
-$ ./bigletters -t "INVERSE" -c 5 -i -u
-```
-
-This command prints "INVERSE" with an inverted magenta background and an underline.
-
-### Color Codes
-
-| Color Code | Color          |
-|------------|----------------|
-| 1          | Red            |
-| 2          | Green          |
-| 3          | Yellow         |
-| 4          | Blue           |
-| 5          | Magenta        |
-| 6          | Cyan           |
-| 7          | White          |
-| 8          | Gray (Bright Black) |
-| 9          | Bright Red     |
-| 10         | Bright Green   |
-| 11         | Bright Yellow  |
-| 12         | Bright Blue    |
-| 13         | Bright Magenta |
-| 14         | Bright Cyan    |
-| 15         | Bright White   |
-
-> **Note:** If the color code is invalid, the program defaults to white.
-
-## Cleanup
-
-To remove the compiled files, use:
-
-```bash
-make clean
-```
-
-## Code Structure
-
-- **`bigletters.c`**: Contains the main program logic, including the printing functions and argument parsing.
-- **`bigletters.h`**: Header file with external declarations and function prototypes.
-- **`font_normal.c` and `font_bold.c`**: Source files defining the normal and bold fonts as Unicode block characters.
-- **`Makefile`**: Defines targets for building, running, and cleaning up the program.
+- `bigletters.c` contains CLI parsing, effects, and row rendering.
+- `font_pack.c` contains pack discovery and ASCII glyph lookup.
+- `font_symbols.c` contains the shared punctuation and replacement glyphs.
+- `font_normal.c` and `font_bold.c` are self-contained built-in packs.
+- `tests/test_font_packs.c` verifies the complete printable-ASCII contract.
 
 ## License
 
-This project is open source and available under the Apache 2.0 License.
+BigLetters is available under the Apache License 2.0.

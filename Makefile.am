@@ -1,9 +1,25 @@
-# Define the program and its source files
 bin_PROGRAMS = bigletters
-bigletters_SOURCES = bigletters.c font_normal.c font_bold.c bigletters.h
+bigletters_SOURCES = \
+	bigletters.c \
+	font_pack.c \
+	font_symbols.c \
+	font_normal.c \
+	font_bold.c \
+	bigletters.h
 
-# Use CFLAGS from the configure script
 bigletters_CFLAGS = @CFLAGS@
+
+AM_CPPFLAGS = -I$(srcdir)
+
+check_PROGRAMS = font-pack-test
+font_pack_test_SOURCES = \
+	tests/test_font_packs.c \
+	font_pack.c \
+	font_symbols.c \
+	font_normal.c \
+	font_bold.c \
+	bigletters.h
+TESTS = font-pack-test
 
 # Clean up build artifacts
 clean-local:
@@ -19,5 +35,4 @@ maintainer-clean-local: distclean-local
 	rm -rf autom4te.cache .deps .libs
 	rm -f install-sh depcomp missing stamp-h1
 
-# Define the default build targets
 all: $(bin_PROGRAMS)

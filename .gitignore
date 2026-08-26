@@ -79,6 +79,11 @@ bigletters
 
 # Ignore compiled binaries
 /bigletters
+/font-pack-test
+/font-pack-test.log
+/font-pack-test.trs
+/test-driver
+/test-suite.log
 /a.out
 
 # Ignore temporary files

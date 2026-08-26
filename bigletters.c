@@ -1,168 +1,243 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
+
 #include "bigletters.h"
 
-// Define ANSI color codes for foreground and background colors (1-15)
 const char *colors_fg[] = {
     "\x1b[30m", "\x1b[31m", "\x1b[32m", "\x1b[33m", "\x1b[34m",
     "\x1b[35m", "\x1b[36m", "\x1b[37m", "\x1b[90m", "\x1b[91m",
-    "\x1b[92m", "\x1b[93m", "\x1b[94m", "\x1b[95m", "\x1b[96m", "\x1b[97m"
+    "\x1b[92m", "\x1b[93m", "\x1b[94m", "\x1b[95m", "\x1b[96m",
+    "\x1b[97m"
 };
 
 const char *colors_bg[] = {
     "\x1b[40m", "\x1b[41m", "\x1b[42m", "\x1b[43m", "\x1b[44m",
     "\x1b[45m", "\x1b[46m", "\x1b[47m", "\x1b[100m", "\x1b[101m",
-    "\x1b[102m", "\x1b[103m", "\x1b[104m", "\x1b[105m", "\x1b[106m", "\x1b[107m"
+    "\x1b[102m", "\x1b[103m", "\x1b[104m", "\x1b[105m", "\x1b[106m",
+    "\x1b[107m"
 };
 
-void print_large_text(const char *text, int color_code, int bold, int rainbow, int underline, int inverse) {
-    const char *(*letters)[MAX_HEIGHT] = bold ? letters_bold : letters_normal;
-    const char *(*numbers)[MAX_HEIGHT] = bold ? numbers_bold : numbers_normal;
+static void set_row_color(int color_code, int inverse)
+{
+    if (inverse) {
+        printf(
+            "%s%s",
+            colors_bg[color_code],
+            color_code > 6 ? colors_fg[0] : colors_fg[7]
+        );
+        return;
+    }
 
-    for (int row = 0; row < MAX_HEIGHT - 1; row++) { // Exclude last row for underline handling
-        int current_color_code = color_code;
+    printf("%s", colors_fg[color_code]);
+}
 
-        // If rainbow is enabled, set current_color_code based on the row
-        if (rainbow) {
-            current_color_code = ((row % 6) + 1); // Cycle through colors 1-6
+static int row_color(int color_code, int rainbow, int row)
+{
+    if (rainbow) {
+        return (row % 6) + 1;
+    }
+
+    return color_code;
+}
+
+void print_large_text_with_font(
+    const char *text,
+    int color_code,
+    const BiglettersFontPack *font,
+    int rainbow,
+    int underline,
+    int inverse
+)
+{
+    size_t text_length = strlen(text);
+
+    for (int row = 0; row < MAX_HEIGHT; row++) {
+        set_row_color(row_color(color_code, rainbow, row), inverse);
+
+        for (size_t index = 0; index < text_length; index++) {
+            const BiglettersGlyph *glyph = bigletters_font_pack_glyph(
+                font,
+                (unsigned char)text[index]
+            );
+            printf("%s ", glyph->rows[row]);
         }
 
-        // Set the color at the beginning of the line
-        const char *color;
-        if (inverse) {
-            color = colors_bg[current_color_code];
-            printf("%s%s", color, current_color_code > 6 ? colors_fg[0] : colors_fg[7]);
-        } else {
-            color = colors_fg[current_color_code];
-            printf("%s", color);
-        }
-
-        // Now print all characters in the line without changing color
-        for (size_t i = 0; i < strlen(text); i++) {
-            char ch = toupper(text[i]);
-
-            if (ch >= 'A' && ch <= 'Z') {
-                printf("%s ", letters[ch - 'A'][row]);
-            } else if (ch >= '0' && ch <= '9') {
-                printf("%s ", numbers[ch - '0'][row]);
-            } else {
-                printf("       "); // Space for unsupported characters
-            }
-        }
-
-        // Reset color after each line
         printf("\x1b[0m\n");
     }
 
-    // Handle the last row
     if (underline) {
-        int current_color_code = color_code;
-        if (rainbow) {
-            current_color_code = ((MAX_HEIGHT - 1) % 6) + 1;
+        set_row_color(
+            row_color(color_code, rainbow, MAX_HEIGHT),
+            inverse
+        );
+        for (size_t index = 0; index < text_length; index++) {
+            printf("▄▄▄▄▄▄ ");
         }
-
-        const char *underline_color;
-        if (inverse) {
-            underline_color = colors_bg[current_color_code];
-            printf("%s%s", underline_color, current_color_code > 6 ? colors_fg[0] : colors_fg[7]);
-        } else {
-            underline_color = colors_fg[current_color_code];
-            printf("%s", underline_color);
-        }
-
-        for (size_t i = 0; i < strlen(text); i++) {
-            printf("▄▄▄▄▄▄▄"); // Underline pattern
-        }
-        printf("\x1b[0m\n"); // Reset color after underline row
-    } else {
-        // Print the actual last row from the font if underline is off
-        int current_color_code = color_code;
-        if (rainbow) {
-            current_color_code = ((MAX_HEIGHT - 1) % 6) + 1;
-        }
-
-        const char *color;
-        if (inverse) {
-            color = colors_bg[current_color_code];
-            printf("%s%s", color, current_color_code > 6 ? colors_fg[0] : colors_fg[7]);
-        } else {
-            color = colors_fg[current_color_code];
-            printf("%s", color);
-        }
-
-        for (size_t i = 0; i < strlen(text); i++) {
-            char ch = toupper(text[i]);
-            if (ch >= 'A' && ch <= 'Z') {
-                printf("%s ", letters[ch - 'A'][MAX_HEIGHT - 1]);
-            } else if (ch >= '0' && ch <= '9') {
-                printf("%s ", numbers[ch - '0'][MAX_HEIGHT - 1]);
-            } else {
-                printf("       ");
-            }
-        }
-        printf("\x1b[0m\n"); // Reset color after last line
+        printf("\x1b[0m\n");
     }
 }
 
+void print_large_text(
+    const char *text,
+    int color_code,
+    int bold,
+    int rainbow,
+    int underline,
+    int inverse
+)
+{
+    const BiglettersFontPack *font = bold
+        ? &bigletters_font_bold
+        : &bigletters_font_normal;
 
-int parse_arguments(int argc, char *argv[], char *text, int *color, int *bold, int *rainbow, int *underline, int *inverse) {
-    *color = 7; // Default to white
-    *bold = 0; *rainbow = 0; *underline = 0; *inverse = 0; // Default flags
+    print_large_text_with_font(
+        text,
+        color_code,
+        font,
+        rainbow,
+        underline,
+        inverse
+    );
+}
+
+int parse_arguments(
+    int argc,
+    char *argv[],
+    char *text,
+    int *color,
+    const char **font_name,
+    int *rainbow,
+    int *underline,
+    int *inverse,
+    int *list_fonts
+)
+{
+    *color = 7;
+    *font_name = "normal";
+    *rainbow = 0;
+    *underline = 0;
+    *inverse = 0;
+    *list_fonts = 0;
     text[0] = '\0';
 
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-t") == 0 && i + 1 < argc) {
-            strncpy(text, argv[++i], MAX_CHARS);
+    for (int index = 1; index < argc; index++) {
+        if (strcmp(argv[index], "-t") == 0 && index + 1 < argc) {
+            strncpy(text, argv[++index], MAX_CHARS);
             text[MAX_CHARS] = '\0';
-        } else if (strcmp(argv[i], "-c") == 0 && i + 1 < argc) {
-            if (strcmp(argv[i + 1], "r") == 0) {
+        } else if (strcmp(argv[index], "-c") == 0 && index + 1 < argc) {
+            if (strcmp(argv[index + 1], "r") == 0) {
                 *rainbow = 1;
-                i++;
+                index++;
             } else {
-                *color = atoi(argv[++i]);
+                *color = atoi(argv[++index]);
             }
-        } else if (strcmp(argv[i], "-b") == 0) {
-            *bold = 1;
-        } else if (strcmp(argv[i], "-u") == 0) {
+        } else if (
+            (strcmp(argv[index], "-f") == 0
+                || strcmp(argv[index], "--font") == 0)
+            && index + 1 < argc
+        ) {
+            *font_name = argv[++index];
+        } else if (strcmp(argv[index], "-b") == 0) {
+            *font_name = "bold";
+        } else if (strcmp(argv[index], "-u") == 0) {
             *underline = 1;
-        } else if (strcmp(argv[i], "-i") == 0) {
+        } else if (strcmp(argv[index], "-i") == 0) {
             *inverse = 1;
+        } else if (strcmp(argv[index], "--list-fonts") == 0) {
+            *list_fonts = 1;
         } else {
-            return 0; // Invalid argument
+            return 0;
         }
     }
 
     return 1;
 }
 
-int validate_input(const char *text, int color_code, int rainbow) {
-    if (strlen(text) == 0 || strlen(text) > MAX_CHARS || (color_code < 1 || color_code > 15) && !rainbow) {
-        return 0;
-    }
-    return 1;
+int validate_input(
+    const char *text,
+    int color_code,
+    int rainbow,
+    const BiglettersFontPack *font
+)
+{
+    size_t text_length = strlen(text);
+
+    return text_length > 0
+        && text_length <= MAX_CHARS
+        && (rainbow || (color_code >= 1 && color_code <= 15))
+        && font != NULL;
 }
 
-void display_usage() {
-    printf("Usage: bigletters [-t text] [-c color] [-b] [-u] [-i]\n");
+void display_usage(void)
+{
+    printf("Usage: bigletters -t text [-c color] [-f font] [-b] [-u] [-i]\n");
     printf("Options:\n");
-    printf("  -t text    Specify the text to display (max %d characters)\n", MAX_CHARS);
-    printf("  -c color   Specify the color code (1-15) or 'r' for rainbow\n");
-    printf("  -b         Use bold font\n");
-    printf("  -u         Underline the text\n");
-    printf("  -i         Inverse color (background instead of foreground)\n");
+    printf("  -t text       Text to display (max %d bytes)\n", MAX_CHARS);
+    printf("  -c color      Color code 1-15, or 'r' for rainbow\n");
+    printf("  -f, --font    Select a named font pack\n");
+    printf("  --list-fonts  List available font packs\n");
+    printf("  -b            Compatibility alias for '--font bold'\n");
+    printf("  -u            Underline the text\n");
+    printf("  -i            Use inverse background color\n");
 }
 
-int main(int argc, char *argv[]) {
-    char text[MAX_CHARS + 1];
-    int color, bold, rainbow, underline, inverse;
+void display_font_packs(void)
+{
+    for (size_t index = 0; index < bigletters_font_pack_count(); index++) {
+        const BiglettersFontPack *font = bigletters_font_pack_at(index);
+        printf("%-8s %s\n", font->name, font->description);
+    }
+}
 
-    if (!parse_arguments(argc, argv, text, &color, &bold, &rainbow, &underline, &inverse) || !validate_input(text, color, rainbow)) {
+int main(int argc, char *argv[])
+{
+    char text[MAX_CHARS + 1];
+    const char *font_name;
+    const BiglettersFontPack *font;
+    int color;
+    int rainbow;
+    int underline;
+    int inverse;
+    int list_fonts;
+
+    if (!parse_arguments(
+        argc,
+        argv,
+        text,
+        &color,
+        &font_name,
+        &rainbow,
+        &underline,
+        &inverse,
+        &list_fonts
+    )) {
         display_usage();
         return 1;
     }
 
-    print_large_text(text, color, bold, rainbow, underline, inverse);
+    if (list_fonts) {
+        display_font_packs();
+        return 0;
+    }
+
+    font = bigletters_font_pack_find(font_name);
+    if (!validate_input(text, color, rainbow, font)) {
+        display_usage();
+        if (font == NULL) {
+            fprintf(stderr, "Unknown font pack: %s\n", font_name);
+            display_font_packs();
+        }
+        return 1;
+    }
+
+    print_large_text_with_font(
+        text,
+        color,
+        font,
+        rainbow,
+        underline,
+        inverse
+    );
     return 0;
 }

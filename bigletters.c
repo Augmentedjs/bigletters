@@ -41,6 +41,17 @@ static int row_color(int color_code, int rainbow, int row)
     return color_code;
 }
 
+static void print_glyph_row(const BiglettersGlyph *glyph, int print_row)
+{
+    uint8_t top = glyph->rows[print_row * 2];
+    uint8_t bottom = glyph->rows[print_row * 2 + 1];
+
+    for (int column = 0; column < MAX_WIDTH; column++) {
+        uint8_t mask = (uint8_t)(0x80U >> column);
+        fputs(bigletters_half_block(top & mask, bottom & mask), stdout);
+    }
+}
+
 void print_large_text_with_font(
     const char *text,
     int color_code,
@@ -52,7 +63,7 @@ void print_large_text_with_font(
 {
     size_t text_length = strlen(text);
 
-    for (int row = 0; row < MAX_HEIGHT; row++) {
+    for (int row = 0; row < PRINT_HEIGHT; row++) {
         set_row_color(row_color(color_code, rainbow, row), inverse);
 
         for (size_t index = 0; index < text_length; index++) {
@@ -60,7 +71,7 @@ void print_large_text_with_font(
                 font,
                 (unsigned char)text[index]
             );
-            printf("%s ", glyph->rows[row]);
+            print_glyph_row(glyph, row);
         }
 
         printf("\x1b[0m\n");
@@ -68,11 +79,11 @@ void print_large_text_with_font(
 
     if (underline) {
         set_row_color(
-            row_color(color_code, rainbow, MAX_HEIGHT),
+            row_color(color_code, rainbow, PRINT_HEIGHT),
             inverse
         );
         for (size_t index = 0; index < text_length; index++) {
-            printf("▄▄▄▄▄▄ ");
+            printf("▄▄▄▄▄▄▄▄");
         }
         printf("\x1b[0m\n");
     }
@@ -88,8 +99,8 @@ void print_large_text(
 )
 {
     const BiglettersFontPack *font = bold
-        ? &bigletters_font_bold
-        : &bigletters_font_normal;
+        ? &bigletters_font_ega
+        : &bigletters_font_cga_thin;
 
     print_large_text_with_font(
         text,
@@ -114,7 +125,7 @@ int parse_arguments(
 )
 {
     *color = 7;
-    *font_name = "normal";
+    *font_name = "cga-thin";
     *rainbow = 0;
     *underline = 0;
     *inverse = 0;
@@ -139,7 +150,7 @@ int parse_arguments(
         ) {
             *font_name = argv[++index];
         } else if (strcmp(argv[index], "-b") == 0) {
-            *font_name = "bold";
+            *font_name = "ega";
         } else if (strcmp(argv[index], "-u") == 0) {
             *underline = 1;
         } else if (strcmp(argv[index], "-i") == 0) {
@@ -177,7 +188,7 @@ void display_usage(void)
     printf("  -c color      Color code 1-15, or 'r' for rainbow\n");
     printf("  -f, --font    Select a named font pack\n");
     printf("  --list-fonts  List available font packs\n");
-    printf("  -b            Compatibility alias for '--font bold'\n");
+    printf("  -b            Use the bold EGA face\n");
     printf("  -u            Underline the text\n");
     printf("  -i            Use inverse background color\n");
 }

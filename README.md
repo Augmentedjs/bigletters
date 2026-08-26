@@ -1,18 +1,25 @@
 # BigLetters
 
-BigLetters is a C command-line program that renders text with pre-baked Unicode
-block and half-block glyphs. It supports every printable base-ASCII character
-(`0x20` through `0x7e`), including distinct uppercase and lowercase letters,
-numbers, punctuation, and symbols.
+BigLetters is a C command-line program for chunky terminal titles. It renders
+real 8×8 legacy bitmap fonts with Unicode half-block characters, preserving all
+eight source columns while packing two source rows into each terminal row. Each
+glyph supplies its own spacing inside its 8×8 cell, so adjacent glyphs are
+rendered without an extra separator column.
 
-## Features
+## Built-in font packs
 
-- Printable ASCII: `A-Z`, `a-z`, `0-9`, spaces, punctuation, and symbols
-- Named, compile-time font packs
-- Built-in `normal` and `bold` packs
-- ANSI colors 1-15 and row-based rainbow color
-- Underline and inverse-color effects
-- A visible replacement glyph for bytes outside the supported ASCII range
+- `cga-thin` — IBM CGA Thin 8×8, the default non-bold face
+- `ega` — IBM EGA 8×8, the bold chunky title face
+- `phoenix` — Phoenix EGA 8×8, a heavier alternate face
+
+The packs cover every printable ASCII character from `0x20` through `0x7e`.
+Invocations without a font option use `cga-thin`. `normal` remains an alias for
+`cga-thin`, while `bold` and `-b` select `ega` for compatibility with earlier
+releases.
+
+The bitmap data is derived from fonts by VileR and is separately licensed under
+CC BY-SA 4.0. See [FONT-LICENSE.md](FONT-LICENSE.md) for attribution, source
+hashes, and licensing details.
 
 ## Build
 
@@ -22,8 +29,6 @@ Requirements are a C compiler, Autoconf, and Automake.
 ./build.sh
 make check
 ```
-
-The resulting executable is `./bigletters`.
 
 ## Usage
 
@@ -38,36 +43,33 @@ Options:
 - `-c r` selects the rainbow effect.
 - `-f name` or `--font name` selects a font pack.
 - `--list-fonts` prints the installed font packs.
-- `-b` remains as an alias for `--font bold`.
+- `-b` switches from the default CGA Thin face to the bold EGA face.
 - `-u` adds an underline below the glyphs.
 - `-i` renders with ANSI background colors.
 
-Examples:
+Terminal-title examples:
 
 ```bash
-./bigletters -t "Hello, world!" -c 4
-./bigletters -t "Score: 12,500" --font bold -c r
-./bigletters -t "[ready] 100%" -u -i -c 2
-./bigletters --list-fonts
+./bigletters -t "HOST: ATLAS-01" -c 6
+./bigletters -t "HOST: ATLAS-01" -b -c 6
+./bigletters -t "BUILD SERVER" -f phoenix -c r
+./bigletters -t "devbox.local" -f cga-thin -c 2
+```
+
+For a login-shell title, build BigLetters and add something like this to
+`~/.bash_profile`:
+
+```bash
+/path/to/bigletters -t "HOST: $(hostname -s)" -c 6
 ```
 
 ## Font packs
 
-A font pack is a `BiglettersFontPack` containing six-row, six-column pre-baked
-glyph tables. Each pack owns uppercase, lowercase, and number glyphs and may
-provide its own printable-ASCII symbols. The built-in packs share the standard
-symbol table.
-
-See [FONTS.md](FONTS.md) for the pack contract and an example of adding a pack.
-
-## Source layout
-
-- `bigletters.c` contains CLI parsing, effects, and row rendering.
-- `font_pack.c` contains pack discovery and ASCII glyph lookup.
-- `font_symbols.c` contains the shared punctuation and replacement glyphs.
-- `font_normal.c` and `font_bold.c` are self-contained built-in packs.
-- `tests/test_font_packs.c` verifies the complete printable-ASCII contract.
+Each printable character is stored as eight bytes: one byte per 8-pixel row.
+The renderer combines each pair of rows into `▀`, `▄`, `█`, or a space. See
+[FONTS.md](FONTS.md) for the C contract and regeneration workflow.
 
 ## License
 
-BigLetters is available under the Apache License 2.0.
+BigLetters program code is available under the Apache License 2.0. Derived font
+data has the separate license described in [FONT-LICENSE.md](FONT-LICENSE.md).

@@ -2,32 +2,32 @@
 #define BIGLETTERS_H
 
 #include <stddef.h>
+#include <stdint.h>
 
-#define MAX_WIDTH 6
-#define MAX_HEIGHT 6
+#define MAX_WIDTH 8
+#define MAX_HEIGHT 8
+#define PRINT_HEIGHT (MAX_HEIGHT / 2)
 #define MAX_CHARS 20
 
 typedef struct BiglettersGlyph {
-    const char *rows[MAX_HEIGHT];
+    uint8_t rows[MAX_HEIGHT];
 } BiglettersGlyph;
 
 typedef struct BiglettersFontPack {
     const char *name;
     const char *description;
-    const BiglettersGlyph *uppercase;
-    const BiglettersGlyph *lowercase;
-    const BiglettersGlyph *numbers;
-    const BiglettersGlyph *symbols;
+    const BiglettersGlyph *glyphs;
     const BiglettersGlyph *replacement;
+    const char *attribution;
+    const char *license;
 } BiglettersFontPack;
 
 extern const char *colors_fg[];
 extern const char *colors_bg[];
 
-extern const BiglettersFontPack bigletters_font_normal;
-extern const BiglettersFontPack bigletters_font_bold;
-extern const BiglettersGlyph bigletters_ascii_symbols[33];
-extern const BiglettersGlyph bigletters_replacement_glyph;
+extern const BiglettersFontPack bigletters_font_cga_thin;
+extern const BiglettersFontPack bigletters_font_ega;
+extern const BiglettersFontPack bigletters_font_phoenix;
 
 size_t bigletters_font_pack_count(void);
 const BiglettersFontPack *bigletters_font_pack_at(size_t index);
@@ -36,6 +36,7 @@ const BiglettersGlyph *bigletters_font_pack_glyph(
     const BiglettersFontPack *font,
     unsigned char character
 );
+const char *bigletters_half_block(int top_pixel, int bottom_pixel);
 
 void print_large_text_with_font(
     const char *text,

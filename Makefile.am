@@ -2,9 +2,9 @@ bin_PROGRAMS = bigletters
 bigletters_SOURCES = \
 	bigletters.c \
 	font_pack.c \
-	font_symbols.c \
-	font_normal.c \
-	font_bold.c \
+	font_ega.c \
+	font_phoenix.c \
+	font_cga_thin.c \
 	bigletters.h
 
 bigletters_CFLAGS = @CFLAGS@
@@ -15,11 +15,17 @@ check_PROGRAMS = font-pack-test
 font_pack_test_SOURCES = \
 	tests/test_font_packs.c \
 	font_pack.c \
-	font_symbols.c \
-	font_normal.c \
-	font_bold.c \
+	font_ega.c \
+	font_phoenix.c \
+	font_cga_thin.c \
 	bigletters.h
-TESTS = font-pack-test
+TESTS = font-pack-test tests/test_cli.sh
+
+EXTRA_DIST = \
+	FONTS.md \
+	FONT-LICENSE.md \
+	tests/test_cli.sh \
+	tools/generate_font_pack.py
 
 # Clean up build artifacts
 clean-local:

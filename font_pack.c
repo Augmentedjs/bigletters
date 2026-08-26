@@ -3,8 +3,9 @@
 #include "bigletters.h"
 
 static const BiglettersFontPack *font_packs[] = {
-    &bigletters_font_normal,
-    &bigletters_font_bold
+    &bigletters_font_cga_thin,
+    &bigletters_font_ega,
+    &bigletters_font_phoenix
 };
 
 size_t bigletters_font_pack_count(void)
@@ -33,25 +34,14 @@ const BiglettersFontPack *bigletters_font_pack_find(const char *name)
         }
     }
 
+    if (strcmp(name, "normal") == 0) {
+        return &bigletters_font_cga_thin;
+    }
+    if (strcmp(name, "bold") == 0) {
+        return &bigletters_font_ega;
+    }
+
     return NULL;
-}
-
-static int symbol_index(unsigned char character)
-{
-    if (character >= ' ' && character <= '/') {
-        return character - ' ';
-    }
-    if (character >= ':' && character <= '@') {
-        return 16 + character - ':';
-    }
-    if (character >= '[' && character <= '`') {
-        return 23 + character - '[';
-    }
-    if (character >= '{' && character <= '~') {
-        return 29 + character - '{';
-    }
-
-    return -1;
 }
 
 const BiglettersGlyph *bigletters_font_pack_glyph(
@@ -59,25 +49,21 @@ const BiglettersGlyph *bigletters_font_pack_glyph(
     unsigned char character
 )
 {
-    int index;
-
     if (font == NULL) {
-        return &bigletters_replacement_glyph;
+        return NULL;
     }
-    if (character >= 'A' && character <= 'Z') {
-        return &font->uppercase[character - 'A'];
-    }
-    if (character >= 'a' && character <= 'z') {
-        return &font->lowercase[character - 'a'];
-    }
-    if (character >= '0' && character <= '9') {
-        return &font->numbers[character - '0'];
-    }
-
-    index = symbol_index(character);
-    if (index >= 0) {
-        return &font->symbols[index];
+    if (character >= ' ' && character <= '~') {
+        return &font->glyphs[character - ' '];
     }
 
     return font->replacement;
+}
+
+const char *bigletters_half_block(int top_pixel, int bottom_pixel)
+{
+    if (top_pixel) {
+        return bottom_pixel ? "█" : "▀";
+    }
+
+    return bottom_pixel ? "▄" : " ";
 }

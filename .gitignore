@@ -76,6 +76,8 @@ bigletters
 *.obj
 *.lo
 *.la
+*.log
+*.trs
 
 # Ignore compiled binaries
 /bigletters
@@ -92,7 +94,8 @@ bigletters
 
 # Ignore any libtool artifacts
 /.libs
-/.deps
+.deps/
+*.dirstamp
 
 # Ignore distribution tarballs
 *.tar.gz

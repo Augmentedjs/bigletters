@@ -1,6 +1,7 @@
 bin_PROGRAMS = bigletters
 bigletters_SOURCES = \
 	bigletters.c \
+	color.c \
 	font_pack.c \
 	font_ega.c \
 	font_phoenix.c \
@@ -14,6 +15,7 @@ AM_CPPFLAGS = -I$(srcdir)
 check_PROGRAMS = font-pack-test
 font_pack_test_SOURCES = \
 	tests/test_font_packs.c \
+	color.c \
 	font_pack.c \
 	font_ega.c \
 	font_phoenix.c \

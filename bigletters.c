@@ -52,19 +52,57 @@ static void print_glyph_row(const BiglettersGlyph *glyph, int print_row)
     }
 }
 
-void print_large_text_with_font(
+static void set_render_color(
+    int color_code,
+    int rainbow,
+    int row,
+    const BiglettersRgbColor *rgb_color,
+    int inverse
+)
+{
+    char escape[BIGLETTERS_ANSI_COLOR_MAX];
+
+    if (rgb_color != NULL) {
+        if (bigletters_format_rgb_escape(
+            escape,
+            sizeof(escape),
+            rgb_color,
+            inverse
+        )) {
+            fputs(escape, stdout);
+        }
+        return;
+    }
+
+    set_row_color(row_color(color_code, rainbow, row), inverse);
+}
+
+static void print_large_text_with_color(
     const char *text,
     int color_code,
+    const BiglettersRgbColor *rgb_color,
     const BiglettersFontPack *font,
     int rainbow,
     int underline,
-    int inverse
+    int inverse,
+    int slant
 )
 {
     size_t text_length = strlen(text);
 
     for (int row = 0; row < PRINT_HEIGHT; row++) {
-        set_row_color(row_color(color_code, rainbow, row), inverse);
+        int slant_offset = slant ? PRINT_HEIGHT - row - 1 : 0;
+
+        for (int column = 0; column < slant_offset; column++) {
+            putchar(' ');
+        }
+        set_render_color(
+            color_code,
+            rainbow,
+            row,
+            rgb_color,
+            inverse
+        );
 
         for (size_t index = 0; index < text_length; index++) {
             const BiglettersGlyph *glyph = bigletters_font_pack_glyph(
@@ -78,8 +116,11 @@ void print_large_text_with_font(
     }
 
     if (underline) {
-        set_row_color(
-            row_color(color_code, rainbow, PRINT_HEIGHT),
+        set_render_color(
+            color_code,
+            rainbow,
+            PRINT_HEIGHT,
+            rgb_color,
             inverse
         );
         for (size_t index = 0; index < text_length; index++) {
@@ -87,6 +128,49 @@ void print_large_text_with_font(
         }
         printf("\x1b[0m\n");
     }
+}
+
+void print_large_text_with_font(
+    const char *text,
+    int color_code,
+    const BiglettersFontPack *font,
+    int rainbow,
+    int underline,
+    int inverse,
+    int slant
+)
+{
+    print_large_text_with_color(
+        text,
+        color_code,
+        NULL,
+        font,
+        rainbow,
+        underline,
+        inverse,
+        slant
+    );
+}
+
+void print_large_text_with_rgb(
+    const char *text,
+    const BiglettersRgbColor *color,
+    const BiglettersFontPack *font,
+    int underline,
+    int inverse,
+    int slant
+)
+{
+    print_large_text_with_color(
+        text,
+        0,
+        color,
+        font,
+        0,
+        underline,
+        inverse,
+        slant
+    );
 }
 
 void print_large_text(
@@ -108,7 +192,8 @@ void print_large_text(
         font,
         rainbow,
         underline,
-        inverse
+        inverse,
+        0
     );
 }
 
@@ -117,18 +202,26 @@ int parse_arguments(
     char *argv[],
     char *text,
     int *color,
+    BiglettersRgbColor *rgb_color,
+    int *use_rgb,
     const char **font_name,
     int *rainbow,
     int *underline,
     int *inverse,
+    int *slant,
     int *list_fonts
 )
 {
     *color = 7;
+    rgb_color->red = 0;
+    rgb_color->green = 0;
+    rgb_color->blue = 0;
+    *use_rgb = 0;
     *font_name = "cga-thin";
     *rainbow = 0;
     *underline = 0;
     *inverse = 0;
+    *slant = 0;
     *list_fonts = 0;
     text[0] = '\0';
 
@@ -143,6 +236,11 @@ int parse_arguments(
             } else {
                 *color = atoi(argv[++index]);
             }
+        } else if (strcmp(argv[index], "-r") == 0 && index + 1 < argc) {
+            if (!bigletters_parse_rgb(argv[++index], rgb_color)) {
+                return 0;
+            }
+            *use_rgb = 1;
         } else if (
             (strcmp(argv[index], "-f") == 0
                 || strcmp(argv[index], "--font") == 0)
@@ -155,6 +253,8 @@ int parse_arguments(
             *underline = 1;
         } else if (strcmp(argv[index], "-i") == 0) {
             *inverse = 1;
+        } else if (strcmp(argv[index], "-s") == 0) {
+            *slant = 1;
         } else if (strcmp(argv[index], "--list-fonts") == 0) {
             *list_fonts = 1;
         } else {
@@ -169,6 +269,7 @@ int validate_input(
     const char *text,
     int color_code,
     int rainbow,
+    int use_rgb,
     const BiglettersFontPack *font
 )
 {
@@ -176,19 +277,24 @@ int validate_input(
 
     return text_length > 0
         && text_length <= MAX_CHARS
-        && (rainbow || (color_code >= 1 && color_code <= 15))
+        && (use_rgb || rainbow || (color_code >= 1 && color_code <= 15))
         && font != NULL;
 }
 
 void display_usage(void)
 {
-    printf("Usage: bigletters -t text [-c color] [-f font] [-b] [-u] [-i]\n");
+    printf(
+        "Usage: bigletters -t text [-c color | -r R,G,B] "
+        "[-f font] [-b] [-s] [-u] [-i]\n"
+    );
     printf("Options:\n");
     printf("  -t text       Text to display (max %d bytes)\n", MAX_CHARS);
     printf("  -c color      Color code 1-15, or 'r' for rainbow\n");
+    printf("  -r R,G,B      True-color RGB; takes precedence over -c\n");
     printf("  -f, --font    Select a named font pack\n");
     printf("  --list-fonts  List available font packs\n");
     printf("  -b            Use the bold EGA face\n");
+    printf("  -s            Slant the text without changing glyph data\n");
     printf("  -u            Underline the text\n");
     printf("  -i            Use inverse background color\n");
 }
@@ -206,10 +312,13 @@ int main(int argc, char *argv[])
     char text[MAX_CHARS + 1];
     const char *font_name;
     const BiglettersFontPack *font;
+    BiglettersRgbColor rgb_color;
     int color;
+    int use_rgb;
     int rainbow;
     int underline;
     int inverse;
+    int slant;
     int list_fonts;
 
     if (!parse_arguments(
@@ -217,10 +326,13 @@ int main(int argc, char *argv[])
         argv,
         text,
         &color,
+        &rgb_color,
+        &use_rgb,
         &font_name,
         &rainbow,
         &underline,
         &inverse,
+        &slant,
         &list_fonts
     )) {
         display_usage();
@@ -233,7 +345,7 @@ int main(int argc, char *argv[])
     }
 
     font = bigletters_font_pack_find(font_name);
-    if (!validate_input(text, color, rainbow, font)) {
+    if (!validate_input(text, color, rainbow, use_rgb, font)) {
         display_usage();
         if (font == NULL) {
             fprintf(stderr, "Unknown font pack: %s\n", font_name);
@@ -242,13 +354,25 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    print_large_text_with_font(
-        text,
-        color,
-        font,
-        rainbow,
-        underline,
-        inverse
-    );
+    if (use_rgb) {
+        print_large_text_with_rgb(
+            text,
+            &rgb_color,
+            font,
+            underline,
+            inverse,
+            slant
+        );
+    } else {
+        print_large_text_with_font(
+            text,
+            color,
+            font,
+            rainbow,
+            underline,
+            inverse,
+            slant
+        );
+    }
     return 0;
 }

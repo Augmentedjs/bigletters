@@ -33,7 +33,7 @@ make check
 ## Usage
 
 ```text
-bigletters -t text [-c color] [-f font] [-b] [-u] [-i]
+bigletters -t text [-c color | -r R,G,B] [-f font] [-b] [-s] [-u] [-i]
 ```
 
 Options:
@@ -41,9 +41,13 @@ Options:
 - `-t text` renders up to 20 ASCII characters.
 - `-c 1` through `-c 15` selects an ANSI color.
 - `-c r` selects the rainbow effect.
+- `-r R,G,B` selects a 24-bit terminal color with components from `0` through
+  `255`. RGB takes precedence over `-c`, regardless of argument order.
 - `-f name` or `--font name` selects a font pack.
 - `--list-fonts` prints the installed font packs.
 - `-b` switches from the default CGA Thin face to the bold EGA face.
+- `-s` slants the rendered title using row offsets of `3`, `2`, `1`, and `0`
+  columns from top to bottom. Glyph bitmap data is unchanged.
 - `-u` adds an underline below the glyphs.
 - `-i` renders with ANSI background colors.
 
@@ -51,6 +55,8 @@ Terminal-title examples:
 
 ```bash
 ./bigletters -t "HOST: ATLAS-01" -c 6
+./bigletters -t "HOST: ATLAS-01" -r 64,200,255
+./bigletters -t "HOST: ATLAS-01" -r 64,200,255 -s
 ./bigletters -t "HOST: ATLAS-01" -b -c 6
 ./bigletters -t "BUILD SERVER" -f phoenix -c r
 ./bigletters -t "devbox.local" -f cga-thin -c 2

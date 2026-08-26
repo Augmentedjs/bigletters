@@ -97,6 +97,72 @@ static int check_half_blocks(void)
         && strcmp(bigletters_half_block(1, 1), "█") == 0;
 }
 
+static int check_rgb_colors(void)
+{
+    static const char *invalid_colors[] = {
+        "",
+        "1,2",
+        "1,2,3,4",
+        "-1,2,3",
+        "256,2,3",
+        "1, 2,3",
+        "1,2,3x"
+    };
+    BiglettersRgbColor color;
+    char escape[BIGLETTERS_ANSI_COLOR_MAX];
+    char short_buffer[4];
+
+    if (!bigletters_parse_rgb("12,34,56", &color)
+        || color.red != 12
+        || color.green != 34
+        || color.blue != 56) {
+        return 0;
+    }
+    if (!bigletters_format_rgb_escape(
+        escape,
+        sizeof(escape),
+        &color,
+        0
+    ) || strcmp(escape, "\x1b[38;2;12;34;56m") != 0) {
+        return 0;
+    }
+    if (!bigletters_format_rgb_escape(
+        escape,
+        sizeof(escape),
+        &color,
+        1
+    ) || strcmp(escape, "\x1b[48;2;12;34;56m\x1b[97m") != 0) {
+        return 0;
+    }
+    if (!bigletters_parse_rgb("255,255,255", &color)
+        || !bigletters_format_rgb_escape(
+            escape,
+            sizeof(escape),
+            &color,
+            1
+        )
+        || strcmp(escape, "\x1b[48;2;255;255;255m\x1b[30m") != 0) {
+        return 0;
+    }
+
+    for (size_t index = 0;
+        index < sizeof(invalid_colors) / sizeof(invalid_colors[0]);
+        index++) {
+        if (bigletters_parse_rgb(invalid_colors[index], &color)) {
+            return 0;
+        }
+    }
+
+    return !bigletters_parse_rgb(NULL, &color)
+        && !bigletters_parse_rgb("1,2,3", NULL)
+        && !bigletters_format_rgb_escape(
+            short_buffer,
+            sizeof(short_buffer),
+            &color,
+            0
+        );
+}
+
 static uint32_t font_hash(const BiglettersFontPack *font)
 {
     uint32_t hash = UINT32_C(2166136261);
@@ -158,8 +224,10 @@ int main(void)
         fprintf(stderr, "EGA and Phoenix packs should remain distinct\n");
         return 1;
     }
-    if (!check_reference_glyphs() || !check_half_blocks()) {
-        fprintf(stderr, "reference raster or half-block packing changed\n");
+    if (!check_reference_glyphs()
+        || !check_half_blocks()
+        || !check_rgb_colors()) {
+        fprintf(stderr, "reference raster, packing, or RGB handling changed\n");
         return 1;
     }
     if (font_hash(&bigletters_font_cga_thin) != UINT32_C(0x82eaa318)

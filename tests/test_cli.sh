@@ -28,3 +28,41 @@ sed "s/${task_escape}\[[0-9;]*m//g" \
 awk '{ print $0 $0 }' \
     "$task_tmp_dir/single" > "$task_tmp_dir/expected-double"
 cmp "$task_tmp_dir/double" "$task_tmp_dir/expected-double"
+
+./bigletters -t "A" -u -s > "$task_tmp_dir/slanted-raw"
+sed "s/${task_escape}\[[0-9;]*m//g" \
+    "$task_tmp_dir/slanted-raw" > "$task_tmp_dir/slanted"
+awk '{
+    offset = NR <= 4 ? 4 - NR : 0
+    for (column = 0; column < offset; column++) {
+        printf " "
+    }
+    print $0
+}' "$task_tmp_dir/single" > "$task_tmp_dir/expected-slanted"
+cmp "$task_tmp_dir/slanted" "$task_tmp_dir/expected-slanted"
+
+./bigletters -t "RGB" -r 12,34,56 > "$task_tmp_dir/rgb"
+./bigletters -t "RGB" -c 999 -r 12,34,56 > "$task_tmp_dir/rgb-after-color"
+./bigletters -t "RGB" -r 12,34,56 -c 999 > "$task_tmp_dir/rgb-before-color"
+cmp "$task_tmp_dir/rgb" "$task_tmp_dir/rgb-after-color"
+cmp "$task_tmp_dir/rgb" "$task_tmp_dir/rgb-before-color"
+
+./bigletters -t "RGB" -r 12,34,56 -i -s \
+    > "$task_tmp_dir/rgb-inverse-slanted"
+task_slant_prefix=$(printf '   \033[48;2;12;34;56m')
+task_actual_prefix=$(head -c "${#task_slant_prefix}" \
+    "$task_tmp_dir/rgb-inverse-slanted")
+if test "$task_actual_prefix" != "$task_slant_prefix"; then
+    echo "slant padding should precede the inverse RGB escape" >&2
+    exit 1
+fi
+
+if ./bigletters -t "RGB" -r 256,0,0 > /dev/null 2>&1; then
+    echo "out-of-range RGB input should fail" >&2
+    exit 1
+fi
+
+if ./bigletters -t "RGB" -r 1,2 > /dev/null 2>&1; then
+    echo "incomplete RGB input should fail" >&2
+    exit 1
+fi
